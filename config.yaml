@@ -1,0 +1,9 @@
+checkers:
+  - type: http
+    url: https://google.com
+  - type: http
+    url: https://microsoft.com
+  - type: http
+    url: http://localhost:8090
+  - type: http
+    url: https://github.com

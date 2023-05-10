@@ -1,0 +1,12 @@
+<html>
+<body>
+<table>
+{{range .}}
+    <tr>
+    <td>{{.Name}}</td>
+    <td>{{if .Status}}Up{{else}}Down{{end}}</td>
+    </tr>
+{{end}}
+</table>
+</body>
+</html>
