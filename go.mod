@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/denisenkom/go-mssqldb v0.12.3
+	github.com/lib/pq v1.10.9
 	github.com/vertica/vertica-sql-go v1.3.2
 	gopkg.in/yaml.v2 v2.4.0
 )

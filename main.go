@@ -14,7 +14,7 @@ type Config struct {
 	Checkers []struct {
 		Type             string
 		URL              string `yaml:",omitempty"`
-		ConnectionString string `yaml:",omitempty"`
+		ConnectionString string `yaml:"connectionString,omitempty"`
 	}
 }
 
@@ -28,6 +28,9 @@ func main() {
 		switch confChecker.Type {
 		case "http":
 			checkers[i] = &checker.HttpChecker{URL: confChecker.URL}
+		case "postgres":
+			checkers[i] = &checker.PostgresChecker{ConnectionString: confChecker.ConnectionString}
+
 			// case "sql":
 			// 	checkers[i] = &checker.SqlChecker{ConnectionString: confChecker.ConnectionString}
 			// case "vertica":

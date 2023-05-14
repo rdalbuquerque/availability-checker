@@ -7,3 +7,5 @@ checkers:
     url: http://localhost:8090
   - type: http
     url: https://github.com
+  - type: postgres
+    connectionString: host=localhost port=5433 dbname=postgres user=postgres password=superuser sslmode=disable connect_timeout=10
