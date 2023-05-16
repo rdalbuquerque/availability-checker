@@ -3,17 +3,31 @@ module availability-checker
 go 1.19
 
 require (
+	github.com/Azure/azure-sdk-for-go v68.0.0+incompatible
 	github.com/denisenkom/go-mssqldb v0.12.3
-	github.com/lib/pq v1.10.9
+	github.com/go-sql-driver/mysql v1.7.1
 	github.com/hashicorp/vault/api v1.9.1
+	github.com/lib/pq v1.10.9
 	github.com/vertica/vertica-sql-go v1.3.2
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
+	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
+	github.com/Azure/go-autorest/autorest v0.11.24 // indirect
+	github.com/Azure/go-autorest/autorest/adal v0.9.18 // indirect
+	github.com/Azure/go-autorest/autorest/azure/auth v0.5.12 // indirect
+	github.com/Azure/go-autorest/autorest/azure/cli v0.4.5 // indirect
+	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
+	github.com/Azure/go-autorest/autorest/to v0.4.0 // indirect
+	github.com/Azure/go-autorest/autorest/validation v0.3.1 // indirect
+	github.com/Azure/go-autorest/logger v0.2.1 // indirect
+	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
+	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/elastic/go-sysinfo v1.8.1 // indirect
 	github.com/elastic/go-windows v1.0.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect

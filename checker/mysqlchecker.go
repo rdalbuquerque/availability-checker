@@ -6,21 +6,21 @@ import (
 	"errors"
 	"fmt"
 
-	_ "github.com/lib/pq"
+	_ "github.com/go-sql-driver/mysql"
 )
 
-type PostgresChecker struct {
+type MySQLChecker struct {
 	Server             string
 	Port               string
 	CredentialProvider credentialprovider.CredentialProvider
 }
 
-func (c *PostgresChecker) Name() string {
-	return fmt.Sprintf("Postgres: %s:%s", c.Server, c.Port)
+func (c *MySQLChecker) Name() string {
+	return fmt.Sprintf("MySQL: %s:%s", c.Server, c.Port)
 }
 
-func (c *PostgresChecker) Check() (bool, error) {
-	user, pwd, err := c.CredentialProvider.GetCredentials("postgres")
+func (c *MySQLChecker) Check() (bool, error) {
+	user, pwd, err := c.CredentialProvider.GetCredentials("mysql")
 	if err != nil {
 		return false, fmt.Errorf("error getting credentials: %v", err)
 	}
@@ -29,10 +29,9 @@ func (c *PostgresChecker) Check() (bool, error) {
 		return false, errors.New("empty username or password")
 	}
 
-	connectionString := fmt.Sprintf("host=%s port=%s dbname=postgres user=%s password=%s sslmode=disable connect_timeout=10", c.Server, c.Port, user, pwd)
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/", user, pwd, c.Server, c.Port)
 
-	fmt.Printf("Connecting to postgres: %s:%s\n", c.Server, c.Port)
-	db, err := sql.Open("postgres", connectionString)
+	db, err := sql.Open("mysql", connectionString)
 	if err != nil {
 		fmt.Printf("Error opening connection: %v\n", err)
 		return false, err

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 	"sync"
 	"text/template"
@@ -36,7 +37,10 @@ func (s *Server) checkAll() {
 	results := make([]checker.CheckResult, len(s.checkers))
 
 	for i, c := range s.checkers {
-		success, _ := c.Check()
+		success, err := c.Check()
+		if err != nil {
+			log.Printf("Error while checking %s: %s\n", c.Name(), err)
+		}
 		results[i] = checker.CheckResult{Name: c.Name(), Status: success}
 	}
 

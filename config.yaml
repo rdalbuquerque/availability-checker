@@ -8,4 +8,8 @@ checkers:
   - type: http
     url: https://github.com
   - type: postgres
-    connectionString: host=localhost port=5433 dbname=postgres user=postgres password=superuser sslmode=disable connect_timeout=10
+    server: localhost
+    port: 5433
+  - type: mysql
+    server: localhost
+    port: 3306

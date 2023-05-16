@@ -13,8 +13,12 @@ type VaultCredentialProvider struct {
 }
 
 func (v *VaultCredentialProvider) Authenticate() error {
+	hcpvaultAddr := os.Getenv("HCPVAULT_ADDR")
+	if hcpvaultAddr == "" {
+		return errors.New("environment variable 'HCPVAULT_ADDR' not set")
+	}
 	client, err := api.NewClient(&api.Config{
-		Address: "https://vault-public-vault-110e8125.d7c3b38b.z1.hashicorp.cloud:8200", // Replace with your Vault server address
+		Address: hcpvaultAddr, // Replace with your Vault server address
 	})
 	if err != nil {
 		return err
@@ -23,10 +27,11 @@ func (v *VaultCredentialProvider) Authenticate() error {
 	// Assuming token-based authentication
 	token := os.Getenv("VAULT_TOKEN")
 	if token == "" {
-		return errors.New("VAULT_TOKEN environment variable not set")
+		return errors.New("environment variable VAULT_TOKEN not set")
 	}
 
 	client.SetToken(token)
+	client.SetNamespace("admin")
 
 	v.client = client
 	return nil
@@ -48,7 +53,7 @@ func (v *VaultCredentialProvider) GetCredentials(checkerType string) (user, pass
 	}
 
 	user, userOk := data["user"].(string)
-	pass, passOk := data["password"].(string)
+	pass, passOk := data["pwd"].(string)
 
 	if !userOk || !passOk {
 		return "", "", errors.New("user and password not found in secret data")
