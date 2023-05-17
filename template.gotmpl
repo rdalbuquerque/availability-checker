@@ -1,12 +1,58 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <title>Availability Checker</title>
+</head>
 <body>
-<table>
-{{range .}}
-    <tr>
-    <td>{{.Name}}</td>
-    <td>{{if .Status}}Up{{else}}Down{{end}}</td>
-    </tr>
-{{end}}
-</table>
+  <div class="container py-5">
+    <h1>Availability Checker</h1>
+    <table class="table mt-4">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Status</th>
+          <th scope="col">LastChecked</th>
+          <th scope="col">Fix</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .}}
+        <tr>
+          <td>{{.Name}}</td>
+          <td>
+            {{if .Status}}
+            <span class="badge badge-success">Available</span>
+            {{else}}
+            <span class="badge badge-danger">Unavailable</span>
+            {{end}}
+          </td>
+          <td>{{.LastChecked.Format "2006-01-02 15:04:05"}}</td>
+          {{if .IsFixable}}
+            <td><button {{if (not .Status)}}enabled{{else}}disabled{{end}} class="btn btn-primary" onclick="fix('{{.Name}}')">Fix</button></td>
+          {{else}}
+            <td><button disabled class="btn btn-danger"></button></td>
+          {{end}}
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    function fix(name) {
+      $.post("/fix?checker=" + name, function() {
+          alert("Successfully fixed!");
+      }).fail(function(response) {
+          alert("Error: " + response.responseText);
+      });
+    }
+  </script>
 </body>
 </html>

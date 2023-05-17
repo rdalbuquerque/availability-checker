@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	_ "github.com/lib/pq"
+	"golang.org/x/sys/windows/svc/mgr"
 )
 
 type PostgresChecker struct {
@@ -46,4 +47,34 @@ func (c *PostgresChecker) Check() (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (c *PostgresChecker) Fix() error {
+	serviceName := "postgresql-x64-15"
+
+	// Connect to the Service Control Manager
+	manager, err := mgr.Connect()
+	if err != nil {
+		return err
+	}
+	defer manager.Disconnect()
+
+	// Open the service by name
+	service, err := manager.OpenService(serviceName)
+	if err != nil {
+		return err
+	}
+	defer service.Close()
+
+	// Start the service
+	err = service.Start()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *PostgresChecker) IsFixable() bool {
+	return true
 }

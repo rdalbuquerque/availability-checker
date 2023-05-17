@@ -46,3 +46,11 @@ func (c *MySQLChecker) Check() (bool, error) {
 
 	return true, nil
 }
+
+func (c *MySQLChecker) Fix() error {
+	return nil
+}
+
+func (c *MySQLChecker) IsFixable() bool {
+	return false
+}

@@ -21,3 +21,12 @@ func (c *HttpChecker) Check() (bool, error) {
 func (c *HttpChecker) Name() string {
 	return c.URL
 }
+
+func (c *HttpChecker) Fix() error {
+	return nil
+}
+
+
+func (c *HttpChecker) IsFixable() bool {
+	return false
+}
