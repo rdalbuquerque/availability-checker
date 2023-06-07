@@ -7,8 +7,10 @@ import (
 
 	"availability-checker/checker"
 	"availability-checker/credentialprovider"
+	"availability-checker/database"
 	"availability-checker/server"
 
+	_ "github.com/lib/pq"
 	"gopkg.in/yaml.v2"
 )
 
@@ -37,9 +39,9 @@ func main() {
 		case "http":
 			checkers[i] = &checker.HttpChecker{URL: confChecker.URL}
 		case "postgres":
-			checkers[i] = &checker.PostgresChecker{Server: confChecker.Server, Port: confChecker.Port, CredentialProvider: credProvider}
+			checkers[i] = &checker.PostgresChecker{Server: confChecker.Server, Port: confChecker.Port, DBConnection: &database.SQLDBConnection{}, CredentialProvider: credProvider}
 		case "mysql":
-			checkers[i] = &checker.MySQLChecker{Server: confChecker.Server, Port: confChecker.Port, CredentialProvider: credProvider}
+			checkers[i] = &checker.MySQLChecker{Server: confChecker.Server, Port: confChecker.Port, DBConnection: &database.SQLDBConnection{}, CredentialProvider: credProvider}
 		}
 	}
 
