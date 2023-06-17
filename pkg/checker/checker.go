@@ -2,9 +2,6 @@ package checker
 
 import (
 	"time"
-
-	_ "github.com/denisenkom/go-mssqldb"
-	_ "github.com/vertica/vertica-sql-go"
 )
 
 type Checker interface {

@@ -1,13 +1,13 @@
 package checker
 
 import (
-	"availability-checker/credentialprovider"
-	"availability-checker/database"
+	"availability-checker/pkg/credentialprovider"
+	"availability-checker/pkg/database"
+	"availability-checker/pkg/winsvcmngr"
 	"errors"
 	"fmt"
 
 	_ "github.com/lib/pq"
-	"golang.org/x/sys/windows/svc/mgr"
 )
 
 type PostgresChecker struct {
@@ -15,6 +15,7 @@ type PostgresChecker struct {
 	Port               string
 	DBConnection       database.DBConnection
 	CredentialProvider credentialprovider.CredentialProvider
+	WinSvcMngr         winsvcmngr.WinSvcMngr
 }
 
 func (c *PostgresChecker) Name() string {
@@ -52,16 +53,15 @@ func (c *PostgresChecker) Check() (bool, error) {
 
 func (c *PostgresChecker) Fix() error {
 	serviceName := "postgresql-x64-15"
-
 	// Connect to the Service Control Manager
-	manager, err := mgr.Connect()
+	err := c.WinSvcMngr.Connect()
 	if err != nil {
 		return err
 	}
-	defer manager.Disconnect()
+	defer c.WinSvcMngr.Disconnect()
 
 	// Open the service by name
-	service, err := manager.OpenService(serviceName)
+	service, err := c.WinSvcMngr.OpenService(serviceName)
 	if err != nil {
 		return err
 	}

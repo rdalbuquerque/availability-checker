@@ -7,7 +7,7 @@ import (
 	"text/template"
 	"time"
 
-	"availability-checker/checker"
+	"availability-checker/pkg/checker"
 )
 
 type Server struct {

@@ -1,9 +1,9 @@
 package checker
 
 import (
-	"availability-checker/container"
-	"availability-checker/credentialprovider"
-	"availability-checker/database"
+	dockercli "availability-checker/pkg/containeractions"
+	"availability-checker/pkg/credentialprovider"
+	"availability-checker/pkg/database"
 	"context"
 	"errors"
 	"fmt"
@@ -21,7 +21,7 @@ type MySQLChecker struct {
 	Port               string
 	DBConnection       database.DBConnection
 	CredentialProvider credentialprovider.CredentialProvider
-	containerClient    container.DockerClient
+	containerClient    dockercli.DockerClient
 }
 
 func (c *MySQLChecker) Name() string {
@@ -61,6 +61,7 @@ func (c *MySQLChecker) Fix() error {
 	if err := c.containerClient.NewClient(); err != nil {
 		return err
 	}
+	defer c.containerClient.Close()
 
 	// Check if the container exists
 	containers, err := c.containerClient.ContainerList(ctx, types.ContainerListOptions{All: true})

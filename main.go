@@ -5,10 +5,10 @@ import (
 	"log"
 	"net/http"
 
-	"availability-checker/checker"
-	"availability-checker/credentialprovider"
-	"availability-checker/database"
-	"availability-checker/server"
+	"availability-checker/pkg/checker"
+	"availability-checker/pkg/credentialprovider"
+	"availability-checker/pkg/database"
+	"availability-checker/pkg/server"
 
 	_ "github.com/lib/pq"
 	"gopkg.in/yaml.v2"

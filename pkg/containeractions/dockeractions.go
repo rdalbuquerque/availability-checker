@@ -1,4 +1,4 @@
-package container
+package containeractions
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 
 type DockerClient interface {
 	NewClient() error
+	Close() error
 	ContainerList(ctx context.Context, opts types.ContainerListOptions) ([]types.Container, error)
 	ImagePull(ctx context.Context, image string, opts types.ImagePullOptions) (io.ReadCloser, error)
 	ContainerCreate(ctx context.Context, config *container.Config, hostConfig *container.HostConfig, containerName string) (container.CreateResponse, error)
 	ContainerStart(ctx context.Context, containerID string, options types.ContainerStartOptions) error
-	// ...
 }
 
 type DefaultDockerClient struct {
@@ -28,6 +28,10 @@ func (dc *DefaultDockerClient) NewClient() error {
 		return err
 	}
 	dc.Client = client
+	return nil
+}
+
+func (dc *DefaultDockerClient) Close() error {
 	return nil
 }
 
