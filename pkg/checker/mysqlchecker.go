@@ -21,7 +21,7 @@ type MySQLChecker struct {
 	Port               string
 	DBConnection       database.DBConnection
 	CredentialProvider credentialprovider.CredentialProvider
-	containerClient    dockercli.DockerClient
+	ContainerClient    dockercli.DockerClient
 }
 
 func (c *MySQLChecker) Name() string {
@@ -58,13 +58,13 @@ func (c *MySQLChecker) Check() (bool, error) {
 
 func (c *MySQLChecker) Fix() error {
 	ctx := context.TODO()
-	if err := c.containerClient.NewClient(); err != nil {
+	if err := c.ContainerClient.NewClient(); err != nil {
 		return err
 	}
-	defer c.containerClient.Close()
+	defer c.ContainerClient.Close()
 
 	// Check if the container exists
-	containers, err := c.containerClient.ContainerList(ctx, types.ContainerListOptions{All: true})
+	containers, err := c.ContainerClient.ContainerList(ctx, types.ContainerListOptions{All: true})
 	if err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func (c *MySQLChecker) Fix() error {
 
 	if containerID == "" {
 		// Container doesn't exist, create it
-		reader, err := c.containerClient.ImagePull(ctx, "mysql:latest", types.ImagePullOptions{})
+		reader, err := c.ContainerClient.ImagePull(ctx, "mysql:latest", types.ImagePullOptions{})
 		if err != nil {
 			panic(err)
 		}
@@ -97,7 +97,7 @@ func (c *MySQLChecker) Fix() error {
 			},
 		}
 
-		resp, err := c.containerClient.ContainerCreate(ctx, &dct.Config{
+		resp, err := c.ContainerClient.ContainerCreate(ctx, &dct.Config{
 			Image: "mysql",
 			Env:   []string{"MYSQL_ROOT_PASSWORD=superuser"},
 			Tty:   true,
@@ -112,7 +112,7 @@ func (c *MySQLChecker) Fix() error {
 		containerID = resp.ID
 	}
 
-	if err := c.containerClient.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
+	if err := c.ContainerClient.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
 		return err
 	}
 	return nil

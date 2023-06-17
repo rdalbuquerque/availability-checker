@@ -169,7 +169,7 @@ func TestMySQLChecker_Fix(t *testing.T) {
 			}
 
 			checker := MySQLChecker{
-				containerClient: mockDocker,
+				ContainerClient: mockDocker,
 				// initialize the other fields as necessary
 			}
 
