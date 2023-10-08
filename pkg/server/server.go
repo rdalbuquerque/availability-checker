@@ -27,26 +27,29 @@ func NewServer(checkers []checker.Checker, templateFile string) *Server {
 }
 
 func (s *Server) StartChecking() {
-	for {
-		s.checkAll()
-		time.Sleep(30 * time.Second)
-	}
-}
+	var wg sync.WaitGroup
+	resultsCh := make(chan checker.CheckResult)
 
-func (s *Server) checkAll() {
-	results := make([]checker.CheckResult, len(s.checkers))
-
-	for i, c := range s.checkers {
-		success, err := c.Check()
-		if err != nil {
-			log.Printf("Error while checking %s: %s\n", c.Name(), err)
-		}
-		results[i] = checker.CheckResult{Name: c.Name(), Status: success, LastChecked: time.Now(), IsFixable: c.IsFixable()}
+	for _, c := range s.checkers {
+		wg.Add(1)
+		go func(c checker.Checker) {
+			defer wg.Done()
+			success, err := c.Check()
+			if err != nil {
+				log.Printf("Error while checking %s: %s\n", c.Name(), err)
+			}
+			resultsCh <- checker.CheckResult{Name: c.Name(), Status: success, LastChecked: time.Now(), IsFixable: c.IsFixable()}
+		}(c)
 	}
 
-	s.mu.Lock()
-	s.results = results
-	s.mu.Unlock()
+	go func() {
+		wg.Wait()
+		close(resultsCh)
+	}()
+
+	for r := range resultsCh {
+		s.results = append(s.results, r)
+	}
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -54,8 +57,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/":
 		s.mu.Lock()
 		defer s.mu.Unlock()
-		s.template.Execute(w, s.results)
-
+		err := s.template.Execute(w, s.results)
+		if err != nil {
+			log.Printf("Error while executing template: %s\n", err)
+		}
 	case "/fix":
 		s.fixChecker(w, r)
 
