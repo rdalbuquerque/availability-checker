@@ -34,6 +34,7 @@ func (s *Server) StartChecking() {
 }
 
 func (s *Server) checkAll() {
+	startTime := time.Now()
 	results := make([]checker.CheckResult, len(s.checkers))
 
 	for i, c := range s.checkers {
@@ -47,6 +48,9 @@ func (s *Server) checkAll() {
 	s.mu.Lock()
 	s.results = results
 	s.mu.Unlock()
+
+	elapsedTime := time.Since(startTime)
+	log.Printf("All checks completed in %s\n", elapsedTime)
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

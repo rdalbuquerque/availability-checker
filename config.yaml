@@ -8,8 +8,14 @@ checkers:
   - type: http
     url: https://github.com
   - type: postgres
-    server: localhost
-    port: 5433
+    server: 4.246.196.65
+    port: 5432
+  - type: postgres
+    server: 40.88.121.176
+    port: 5432
   - type: mysql
-    server: localhost
+    server: 20.121.32.0
+    port: 3306
+  - type: mysql
+    server: 40.88.127.108
     port: 3306

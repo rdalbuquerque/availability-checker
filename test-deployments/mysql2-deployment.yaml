@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql2
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 3306
+  selector:
+    app: mysql2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql2
+spec:
+  selector:
+    matchLabels:
+      app: mysql2
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql2
+    spec:
+      containers:
+      - image: mysql:5.6
+        name: mysql2
+        env:
+          # Use secret in real usage
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+        ports:
+        - containerPort: 3306
+          name: mysql2
+        volumeMounts:
+        - name: mysql2-persistent-storage
+          mountPath: /var/lib/mysql2
+      volumes:
+      - name: mysql2-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql2-pv-claim
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql2-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/mysql2"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql2-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+

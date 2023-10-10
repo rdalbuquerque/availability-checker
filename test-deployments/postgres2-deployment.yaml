@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres2
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 5432
+  selector:
+    app: postgres2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres2
+spec:
+  selector:
+    matchLabels:
+      app: postgres2
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: postgres2
+    spec:
+      containers:
+      - image: postgres:13
+        name: postgres2
+        env:
+          # Use secret in real usage
+        - name: POSTGRES_PASSWORD
+          value: password
+        ports:
+        - containerPort: 5432
+          name: postgres2
+        volumeMounts:
+        - name: postgres2-persistent-storage
+          mountPath: /var/lib/postgres2ql/data
+      volumes:
+      - name: postgres2-persistent-storage
+        persistentVolumeClaim:
+          claimName: postgres2-pv-claim
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres2-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/postgres2"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres2-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
