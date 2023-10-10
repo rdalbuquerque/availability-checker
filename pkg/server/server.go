@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"net/http"
+	"sort"
 	"sync"
 	"text/template"
 	"time"
@@ -27,28 +28,44 @@ func NewServer(checkers []checker.Checker, templateFile string) *Server {
 }
 
 func (s *Server) StartChecking() {
-	var wg sync.WaitGroup
-	resultsCh := make(chan checker.CheckResult)
+	for {
+		results := make([]checker.CheckResult, 0, len(s.checkers))
+		var wg sync.WaitGroup
+		resultsCh := make(chan checker.CheckResult)
 
-	for _, c := range s.checkers {
-		wg.Add(1)
-		go func(c checker.Checker) {
-			defer wg.Done()
-			success, err := c.Check()
-			if err != nil {
-				log.Printf("Error while checking %s: %s\n", c.Name(), err)
-			}
-			resultsCh <- checker.CheckResult{Name: c.Name(), Status: success, LastChecked: time.Now(), IsFixable: c.IsFixable()}
-		}(c)
-	}
+		startTime := time.Now()
 
-	go func() {
-		wg.Wait()
-		close(resultsCh)
-	}()
+		for _, c := range s.checkers {
+			wg.Add(1)
+			go func(c checker.Checker) {
+				defer wg.Done()
+				success, err := c.Check()
+				if err != nil {
+					log.Printf("Error while checking %s: %s\n", c.Name(), err)
+				}
+				resultsCh <- checker.CheckResult{Name: c.Name(), Status: success, LastChecked: time.Now(), IsFixable: c.IsFixable()}
+			}(c)
+		}
 
-	for r := range resultsCh {
-		s.results = append(s.results, r)
+		go func() {
+			wg.Wait()
+			close(resultsCh)
+		}()
+
+		for r := range resultsCh {
+			results = append(results, r)
+		}
+
+		// Sort the results by name
+		sort.Slice(results, func(i, j int) bool {
+			return results[i].Name < results[j].Name
+		})
+
+		s.results = results
+		duration := time.Since(startTime)
+		log.Printf("All checks completed in %s\n", duration)
+
+		time.Sleep(5 * time.Second) // wait for 5 minutes before running the function again
 	}
 }
 

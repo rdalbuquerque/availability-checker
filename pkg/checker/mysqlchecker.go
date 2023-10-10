@@ -1,18 +1,12 @@
 package checker
 
 import (
-	dockercli "availability-checker/pkg/containeractions"
 	"availability-checker/pkg/credentialprovider"
 	"availability-checker/pkg/database"
-	"context"
+	"availability-checker/pkg/k8s"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
 
-	"github.com/docker/docker/api/types"
-	dct "github.com/docker/docker/api/types/container"
-	"github.com/docker/go-connections/nat"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -21,7 +15,7 @@ type MySQLChecker struct {
 	Port               string
 	DBConnection       database.DBConnection
 	CredentialProvider credentialprovider.CredentialProvider
-	ContainerClient    dockercli.DockerClient
+	K8sClient          k8s.K8sClient
 }
 
 func (c *MySQLChecker) Name() string {
@@ -57,65 +51,7 @@ func (c *MySQLChecker) Check() (bool, error) {
 }
 
 func (c *MySQLChecker) Fix() error {
-	ctx := context.TODO()
-	if err := c.ContainerClient.NewClient(); err != nil {
-		return err
-	}
-	defer c.ContainerClient.Close()
-
-	// Check if the container exists
-	containers, err := c.ContainerClient.ContainerList(ctx, types.ContainerListOptions{All: true})
-	if err != nil {
-		return err
-	}
-
-	var containerID string
-	for _, container := range containers {
-		for _, name := range container.Names {
-			if name == "/test-mysql" {
-				containerID = container.ID
-				break
-			}
-		}
-		if containerID != "" {
-			break
-		}
-	}
-
-	if containerID == "" {
-		// Container doesn't exist, create it
-		reader, err := c.ContainerClient.ImagePull(ctx, "mysql:latest", types.ImagePullOptions{})
-		if err != nil {
-			panic(err)
-		}
-		_, err = io.Copy(ioutil.Discard, reader)
-		reader.Close()
-
-		hostConfig := &dct.HostConfig{
-			PortBindings: nat.PortMap{
-				"3306/tcp": []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: "3306"}},
-			},
-		}
-
-		resp, err := c.ContainerClient.ContainerCreate(ctx, &dct.Config{
-			Image: "mysql",
-			Env:   []string{"MYSQL_ROOT_PASSWORD=superuser"},
-			Tty:   true,
-			ExposedPorts: nat.PortSet{
-				"3306/tcp": struct{}{},
-			},
-		}, hostConfig, "test-mysql")
-		if err != nil {
-			return err
-		}
-
-		containerID = resp.ID
-	}
-
-	if err := c.ContainerClient.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
-		return err
-	}
-	return nil
+	return c.K8sClient.ScaleDeploymentToDesiredReplicas("default", "mysql", 1)
 }
 
 func (c *MySQLChecker) IsFixable() bool {

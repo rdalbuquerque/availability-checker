@@ -6,11 +6,10 @@ import (
 	"net/http"
 
 	"availability-checker/pkg/checker"
-	"availability-checker/pkg/containeractions"
 	"availability-checker/pkg/credentialprovider"
 	"availability-checker/pkg/database"
+	"availability-checker/pkg/k8s"
 	"availability-checker/pkg/server"
-	"availability-checker/pkg/winsvcmngr"
 
 	_ "github.com/lib/pq"
 	"gopkg.in/yaml.v2"
@@ -35,6 +34,10 @@ func main() {
 	var config Config
 	yaml.Unmarshal(data, &config)
 
+	k8sclient, err := k8s.NewK8sClient()
+	if err != nil {
+		log.Fatalf("Error creating k8s client: %v", err)
+	}
 	checkers := make([]checker.Checker, len(config.Checkers))
 	for i, confChecker := range config.Checkers {
 		switch confChecker.Type {
@@ -46,7 +49,7 @@ func main() {
 				Port:               confChecker.Port,
 				DBConnection:       &database.SQLDBConnection{},
 				CredentialProvider: credProvider,
-				WinSvcMngr:         &winsvcmngr.DefaultWinSvcMngr{},
+				K8sClient:          *k8sclient,
 			}
 		case "mysql":
 			checkers[i] = &checker.MySQLChecker{
@@ -54,7 +57,7 @@ func main() {
 				Port:               confChecker.Port,
 				DBConnection:       &database.SQLDBConnection{},
 				CredentialProvider: credProvider,
-				ContainerClient:    &containeractions.DefaultDockerClient{},
+				K8sClient:          *k8sclient,
 			}
 		}
 	}

@@ -34,7 +34,7 @@
           {{if .IsFixable}}
             <td><button {{if (not .Status)}}enabled{{else}}disabled{{end}} class="btn btn-primary" onclick="fix('{{.Name}}')">Fix</button></td>
           {{else}}
-            <td><button disabled class="btn btn-danger"></button></td>
+            <td><button disabled class="btn btn-danger">Unfixable :(</button></td>
           {{end}}
         </tr>
         {{end}}
