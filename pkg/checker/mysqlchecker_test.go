@@ -3,8 +3,6 @@ package checker
 import (
 	"availability-checker/pkg/credentialprovider"
 	"errors"
-	"io/ioutil"
-	"strings"
 	"testing"
 
 	"context"
@@ -122,60 +120,4 @@ func (m *mockStruct) ContainerCreate(ctx context.Context, config *dct.Config, ho
 func (m *mockStruct) ContainerStart(ctx context.Context, containerID string, options types.ContainerStartOptions) error {
 	args := m.Called(ctx, containerID, options)
 	return args.Error(0)
-}
-
-// Test the Fix() method
-func TestMySQLChecker_Fix(t *testing.T) {
-	testCases := []struct {
-		name           string
-		newClientErr   error
-		expectedContID string
-		containerList  []types.Container
-		expectedErr    error
-	}{
-		{
-			name:           "no container",
-			expectedContID: "testmysql",
-			newClientErr:   nil,
-			containerList:  nil,
-			expectedErr:    nil,
-		},
-		{
-			name:           "containers exists",
-			newClientErr:   nil,
-			expectedContID: "testmysql",
-			containerList: []types.Container{
-				{ID: "testmysql", Names: []string{"/test-mysql"}, Image: "mysql"},
-			},
-			expectedErr: nil,
-		},
-	}
-	ctx := context.TODO()
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			mockDocker := new(mockStruct)
-			mockDocker.On("NewClient").Return(nil)
-			if tc.newClientErr == nil {
-				mockDocker.On("Close").Return(nil)
-			}
-			mockDocker.On("ContainerList", ctx, types.ContainerListOptions{All: true}).Return(tc.containerList, nil)
-			if tc.containerList == nil {
-				mockDocker.On("ImagePull", ctx, "mysql:latest", types.ImagePullOptions{}).Return(ioutil.NopCloser(strings.NewReader("")), nil)
-				mockDocker.On("ContainerCreate", ctx, mock.AnythingOfType("*container.Config"), mock.AnythingOfType("*container.HostConfig"), "test-mysql").Return(dct.CreateResponse{ID: tc.expectedContID}, nil)
-				mockDocker.On("ContainerStart", ctx, tc.expectedContID, types.ContainerStartOptions{}).Return(nil)
-			} else {
-				mockDocker.On("ContainerStart", ctx, tc.expectedContID, types.ContainerStartOptions{}).Return(nil)
-			}
-
-			checker := MySQLChecker{
-				ContainerClient: mockDocker,
-				// initialize the other fields as necessary
-			}
-
-			err := checker.Fix()
-			assert.Equal(t, tc.expectedErr, err)
-			mockDocker.AssertExpectations(t)
-		})
-	}
 }

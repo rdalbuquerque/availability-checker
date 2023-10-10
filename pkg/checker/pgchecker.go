@@ -3,7 +3,7 @@ package checker
 import (
 	"availability-checker/pkg/credentialprovider"
 	"availability-checker/pkg/database"
-	"availability-checker/pkg/winsvcmngr"
+	"availability-checker/pkg/k8s"
 	"errors"
 	"fmt"
 
@@ -15,7 +15,7 @@ type PostgresChecker struct {
 	Port               string
 	DBConnection       database.DBConnection
 	CredentialProvider credentialprovider.CredentialProvider
-	WinSvcMngr         winsvcmngr.WinSvcMngr
+	K8sClient          k8s.K8sClient
 }
 
 func (c *PostgresChecker) Name() string {
@@ -52,28 +52,7 @@ func (c *PostgresChecker) Check() (bool, error) {
 }
 
 func (c *PostgresChecker) Fix() error {
-	serviceName := "postgresql-x64-15"
-	// Connect to the Service Control Manager
-	err := c.WinSvcMngr.Connect()
-	if err != nil {
-		return err
-	}
-	defer c.WinSvcMngr.Disconnect()
-
-	// Open the service by name
-	service, err := c.WinSvcMngr.OpenService(serviceName)
-	if err != nil {
-		return err
-	}
-	defer service.Close()
-
-	// Start the service
-	err = service.Start()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return c.K8sClient.ScaleDeploymentToDesiredReplicas("default", "postgres", 1)
 }
 
 func (c *PostgresChecker) IsFixable() bool {

@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 	"net/http"
+	"sort"
 	"sync"
 	"text/template"
 	"time"
@@ -28,25 +29,44 @@ func NewServer(checkers []checker.Checker, templateFile string) *Server {
 
 func (s *Server) StartChecking() {
 	for {
-		s.checkAll()
-		time.Sleep(30 * time.Second)
-	}
-}
+		results := make([]checker.CheckResult, 0, len(s.checkers))
+		var wg sync.WaitGroup
+		resultsCh := make(chan checker.CheckResult)
 
-func (s *Server) checkAll() {
-	results := make([]checker.CheckResult, len(s.checkers))
+		startTime := time.Now()
 
-	for i, c := range s.checkers {
-		success, err := c.Check()
-		if err != nil {
-			log.Printf("Error while checking %s: %s\n", c.Name(), err)
+		for _, c := range s.checkers {
+			wg.Add(1)
+			go func(c checker.Checker) {
+				defer wg.Done()
+				success, err := c.Check()
+				if err != nil {
+					log.Printf("Error while checking %s: %s\n", c.Name(), err)
+				}
+				resultsCh <- checker.CheckResult{Name: c.Name(), Status: success, LastChecked: time.Now(), IsFixable: c.IsFixable()}
+			}(c)
 		}
-		results[i] = checker.CheckResult{Name: c.Name(), Status: success, LastChecked: time.Now(), IsFixable: c.IsFixable()}
-	}
 
-	s.mu.Lock()
-	s.results = results
-	s.mu.Unlock()
+		go func() {
+			wg.Wait()
+			close(resultsCh)
+		}()
+
+		for r := range resultsCh {
+			results = append(results, r)
+		}
+
+		// Sort the results by name
+		sort.Slice(results, func(i, j int) bool {
+			return results[i].Name < results[j].Name
+		})
+
+		s.results = results
+		duration := time.Since(startTime)
+		log.Printf("All checks completed in %s\n", duration)
+
+		time.Sleep(5 * time.Second) // wait for 5 minutes before running the function again
+	}
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -54,8 +74,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/":
 		s.mu.Lock()
 		defer s.mu.Unlock()
-		s.template.Execute(w, s.results)
-
+		err := s.template.Execute(w, s.results)
+		if err != nil {
+			log.Printf("Error while executing template: %s\n", err)
+		}
 	case "/fix":
 		s.fixChecker(w, r)
 
