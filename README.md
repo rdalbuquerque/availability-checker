@@ -1,6 +1,8 @@
 # Availability Checker
 - [Availability Checker](#availability-checker)
   - [Description](#description)
+  - [Pre-requisites](#pre-requisites)
+  - [Credential Providers](#credential-providers)
   - [Project Structure](#project-structure)
   - [Overview](#overview)
   - [Example usage](#example-usage)
@@ -16,6 +18,39 @@ Another Go feature this project explore is concurrency. Each check is executed i
 
 This project also explores Go templating capabilities to render and serve a simple HTML page summarizing the status of each checker.
 
+## Pre-requisites
+It depends on you credential provider of choice.
+For HCP Vault you need to set the following environment variables:
+```bash
+HCPVAULT_ADDR
+VAULT_TOKEN
+```
+For Azure Key Vault you need to set the following environment variables:
+```bash
+AZURE_TENANT_ID
+AZURE_CLIENT_ID
+AZURE_CLIENT_SECRET
+AZURE_KEYVAULT
+```
+
+## Credential Providers
+In the current version of this project there are two credential providers implemented, Hachicorp's Vault and Azure Key Vault. Both of them implement the `CredentialProvider` interface, which is responsible for retrieving credentials for a given service/resource.
+
+The Azure Key Vault provider expects the environment variable `AZURE_KEYVAULT` to be set with the name of the vault that will hold all credentials for the checkers. The credentials are expected to be stored as secrets in the vault in the following format: `{checkerType}-user` and `{checkerType}-pwd`.
+
+The Hachicorp's Vault provider expects the environment variable `HCPVAULT_ADDR` to be set with the address of the vault. The credentials for each checker type are expected to be stored on `admin` namespace and under it's own folder under `secret`. This structure should contain the `user` and `pwd` secrets.
+Example:
+```
+.
+└── admin (namespace)
+    └── secret
+        ├── mysql
+        │   ├── pwd
+        │   └── user
+        └── postgres
+            ├── pwd
+            └── user
+```
 ## Project Structure
 
 ```
