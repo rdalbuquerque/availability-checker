@@ -3,13 +3,9 @@ checkers:
     url: https://google.com
   - type: http
     url: https://microsoft.com
-  - type: http
-    url: http://localhost:8090
-  - type: http
-    url: https://github.com
   - type: postgres
-    server: 4.246.196.65
+    server: mypostgres.net
     port: 5432
   - type: mysql
-    server: 20.121.32.0
+    server: mysql.net
     port: 3306

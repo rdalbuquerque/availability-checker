@@ -3,7 +3,8 @@
   - [Description](#description)
   - [Project Structure](#project-structure)
   - [Overview](#overview)
-  - [Web Interface](#web-interface)
+  - [Example usage](#example-usage)
+    - [Adding new checks](#adding-new-checks)
   - [Core Concepts](#core-concepts)
   - [Future Considerations](#future-considerations)
 
@@ -66,9 +67,28 @@ This project also explores Go templating capabilities to render and serve a simp
 
 - **Test Deployments**: Provides YAML files for deploying services like MySQL and PostgreSQL in Kubernetes environments. These are used to deploy and validate SQL Checkers.
 
-## Web Interface
+## Example usage
+### Adding new checks
+After implementing the checker type, you can add it to the config.yaml file and it will be automatically added to the list of checks.\
+Also, if it's a checker that needs credentials, make sure to add the credentials to the corresponding credential provider.
+
+example:
+```yaml
+checkers:
+  - type: http
+    url: https://google.com
+  - type: http
+    url: https://microsoft.com
+  - type: postgres
+    server: mypostgres.net
+    port: 5432
+  - type: mysql
+    server: mysql.net
+    port: 3306
+```
 
 A web-based interface provides users with a clear overview of the status of each service/resource. Each entry in the table corresponds to a checker, and its current status is color-coded for clarity (green for available, red for unavailable). If a service/resource is unavailable and fixable, a "Fix" button is available to attempt corrective action.
+![checks](image.png)
 
 ## Core Concepts
 
