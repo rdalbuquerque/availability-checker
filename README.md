@@ -5,6 +5,7 @@
   - [Overview](#overview)
   - [Example usage](#example-usage)
     - [Adding new checks](#adding-new-checks)
+    - [Web interface](#web-interface)
   - [Core Concepts](#core-concepts)
   - [Future Considerations](#future-considerations)
 
@@ -87,6 +88,7 @@ checkers:
     port: 3306
 ```
 
+### Web interface
 A web-based interface provides users with a clear overview of the status of each service/resource. Each entry in the table corresponds to a checker, and its current status is color-coded for clarity (green for available, red for unavailable). If a service/resource is unavailable and fixable, a "Fix" button is available to attempt corrective action.
 ![checks](image.png)
 
