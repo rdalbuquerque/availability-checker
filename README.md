@@ -36,9 +36,12 @@ AZURE_KEYVAULT
 ## Credential Providers
 In the current version of this project there are two credential providers implemented, Hachicorp's Vault and Azure Key Vault. Both of them implement the `CredentialProvider` interface, which is responsible for retrieving credentials for a given service/resource.
 
+To chosse a credential provider, simply set one of the pre-requisites environment variables. If `HCPVAULT_ADDR` is set, the Hachicorp's Vault provider will be used, otherwise the Azure Key Vault provider will be used.
+
 The Azure Key Vault provider expects the environment variable `AZURE_KEYVAULT` to be set with the name of the vault that will hold all credentials for the checkers. The credentials are expected to be stored as secrets in the vault in the following format: `{checkerType}-user` and `{checkerType}-pwd`.
 
 The Hachicorp's Vault provider expects the environment variable `HCPVAULT_ADDR` to be set with the address of the vault. The credentials for each checker type are expected to be stored on `admin` namespace and under it's own folder under `secret`. This structure should contain the `user` and `pwd` secrets.
+
 Example:
 ```
 .
