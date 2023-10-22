@@ -8,11 +8,11 @@ import (
 	"github.com/hashicorp/vault/api"
 )
 
-type VaultCredentialProvider struct {
+type HcpVaultCredentialProvider struct {
 	client *api.Client
 }
 
-func (v *VaultCredentialProvider) Authenticate() error {
+func (v *HcpVaultCredentialProvider) Authenticate() error {
 	hcpvaultAddr := os.Getenv("HCPVAULT_ADDR")
 	if hcpvaultAddr == "" {
 		return errors.New("environment variable 'HCPVAULT_ADDR' not set")
@@ -37,7 +37,7 @@ func (v *VaultCredentialProvider) Authenticate() error {
 	return nil
 }
 
-func (v *VaultCredentialProvider) GetCredentials(checkerType string) (user, password string, err error) {
+func (v *HcpVaultCredentialProvider) GetCredentials(checkerType string) (user, password string, err error) {
 	secret, err := v.client.Logical().Read(fmt.Sprintf("secret/data/%s", checkerType))
 	if err != nil {
 		return "", "", err

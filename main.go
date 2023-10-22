@@ -1,9 +1,10 @@
 package main
 
 import (
-	"io/ioutil"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"availability-checker/pkg/checker"
 	"availability-checker/pkg/credentialprovider"
@@ -25,12 +26,14 @@ type Config struct {
 }
 
 func main() {
-	credProvider := &credentialprovider.AzureKeyVaultCredentialProvider{}
-	err := credProvider.Authenticate()
+	credProvider, err := credentialProviderAuth()
 	if err != nil {
 		log.Fatalf("Error authenticating credential provider: %v", err)
 	}
-	data, _ := ioutil.ReadFile("config.yaml")
+	data, err := os.ReadFile("config.yaml")
+	if err != nil {
+		log.Fatalf("Error reading config file: %v", err)
+	}
 	var config Config
 	yaml.Unmarshal(data, &config)
 
@@ -67,4 +70,20 @@ func main() {
 	go serverInstance.StartChecking()
 
 	http.ListenAndServe(":8080", serverInstance)
+}
+
+func credentialProviderAuth() (credentialprovider.CredentialProvider, error) {
+	var credProvider credentialprovider.CredentialProvider
+	if os.Getenv("AZURE_KEYVAULT") != "" {
+		credProvider = &credentialprovider.AzureKeyVaultCredentialProvider{}
+	} else if os.Getenv("HCPVAULT_ADDR") != "" {
+		credProvider = &credentialprovider.HcpVaultCredentialProvider{}
+	} else {
+		return nil, fmt.Errorf("no credential provider environment variable set")
+	}
+	err := credProvider.Authenticate()
+	if err != nil {
+		return nil, err
+	}
+	return credProvider, nil
 }
